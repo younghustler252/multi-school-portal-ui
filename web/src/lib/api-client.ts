@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequ
 import { useAuthStore } from "@/stores/auth.store";
 import { ApiErrorResponse, ApiResponse } from "@/types/api-response";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 const axiosInstance: AxiosInstance = axios.create({
 	baseURL: API_BASE_URL,

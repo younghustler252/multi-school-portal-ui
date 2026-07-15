@@ -9,7 +9,7 @@ export function Hero() {
 			<div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
 				<div>
 					<div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-						Built for Nigerian primary &amp; secondary schools
+						The operating system for K-12 schools
 					</div>
 
 					<h1 className="mt-5 text-4xl font-semibold tracking-tight text-balance md:text-5xl">

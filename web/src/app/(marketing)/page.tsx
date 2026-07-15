@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/marketing/hero";
-import { NigeriaFeatures } from "@/components/marketing/nigeria-features";
+import { Features } from "@/components/marketing/features";
+import { Modules } from "@/components/marketing/modules";
 import { RoleShowcase } from "@/components/marketing/role-showcase";
 import { CtaBand } from "@/components/marketing/cta-band";
 
 export const metadata: Metadata = {
-	title: "SchoolOS — School Management Software for Nigerian Schools",
+	title: "SchoolOS — The Operating System for K-12 Schools",
 	description:
-		"Replace paper registers and spreadsheets with one digital system for attendance, WAEC-scale grading, report cards, and fee collection — built for Nigerian primary and secondary schools.",
+		"Replace paper registers and spreadsheets with one digital platform for attendance, grading, report cards, and fee collection.",
 };
 
 export default function HomePage() {
 	return (
 		<>
 			<Hero />
-			<NigeriaFeatures />
+			<Features />
+			<Modules />
 			<RoleShowcase />
 			<CtaBand />
 		</>
