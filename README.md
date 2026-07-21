@@ -1,1 +1,0 @@
-# multi-school-portal-ui

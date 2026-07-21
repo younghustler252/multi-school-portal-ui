@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
-import { useAuthStore } from "@/stores/auth.store";
+import { authApi } from "@/features/auth/services/auth.api";
 import { ApiErrorResponse, ApiResponse } from "@/types/api-response";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
@@ -9,19 +9,12 @@ const axiosInstance: AxiosInstance = axios.create({
 	headers: {
 		"Content-Type": "application/json",
 	},
-	withCredentials: true, // sends httpOnly refresh cookie automatically
+	withCredentials: true, // sends httpOnly accessToken + refreshToken cookies automatically
 });
 
-axiosInstance.interceptors.request.use((config) => {
-	const token = useAuthStore.getState().accessToken;
-	if (token) {
-		config.headers.Authorization = `Bearer ${token}`;
-	}
-	return config;
-});
+// No request interceptor needed — cookies are sent automatically by the browser.
+// Nothing to manually attach here anymore.
 
-// Interceptor does ONE job: silent token refresh on 401.
-// No unwrapping, no error reshaping — axios stays standard axios.
 let isRefreshing = false;
 
 axiosInstance.interceptors.response.use(
@@ -32,26 +25,20 @@ axiosInstance.interceptors.response.use(
 		if (error.response?.status === 401 && !isRefreshing && originalRequest) {
 			isRefreshing = true;
 			try {
-				const refreshed = await useAuthStore.getState().refreshAccessToken();
+				// Refresh cookie is sent automatically; backend rotates both cookies on success
+				const refreshRes = await authApi.refresh();
 				isRefreshing = false;
-				if (refreshed) {
+				if (refreshRes.success) {
 					return axiosInstance(originalRequest);
 				}
 			} catch {
 				isRefreshing = false;
 			}
-			useAuthStore.getState().logout();
 		}
 
-		return Promise.reject(error); // stays a real AxiosError
+		return Promise.reject(error);
 	}
 );
-
-// ==================================
-// TYPED REQUEST WRAPPER
-// ==================================
-// Explicit unwrap + error normalization, in ONE place, with real generics —
-// no cast on axiosInstance itself, no hidden interceptor behavior.
 
 async function request<T>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
 	try {
@@ -61,7 +48,7 @@ async function request<T>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
 		const axiosErr = err as AxiosError<ApiErrorResponse>;
 
 		if (axiosErr.response?.data) {
-			return axiosErr.response.data; // backend's real error envelope
+			return axiosErr.response.data;
 		}
 
 		return {
@@ -72,7 +59,6 @@ async function request<T>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
 }
 
 export const API = {
-
 	get: <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> =>
 		request<T>({ ...config, method: "GET", url }),
 
@@ -88,10 +74,8 @@ export const API = {
 	delete: <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> =>
 		request<T>({ ...config, method: "DELETE", url }),
 
-	// bypasses ApiResponse<T> envelope entirely — for report-card PDF downloads
 	downloadFile: async (url: string, config?: AxiosRequestConfig): Promise<Blob> => {
 		const response = await axiosInstance.request<Blob>({ ...config, method: "GET", url, responseType: "blob" });
 		return response.data;
 	},
-
 };

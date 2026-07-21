@@ -21,6 +21,7 @@ import { useRegisterForm } from "@/features/auth/hooks/use-register-form";
 import { RegisterStepper } from "@/components/marketing/register-stepper";
 import { ApiErrorResponse } from "@/types/api-response";
 import { ROLE_DEFAULT_ROUTE } from "@/types/roles";
+import { cn } from "@/lib/utils";
 
 export default function RegisterPage() {
 	const router = useRouter();
@@ -39,15 +40,14 @@ export default function RegisterPage() {
 		setIsSubmitting(true);
 		try {
 			await registerSchoolAdmin(values);
-			const user = useAuthStore.getState().user;
-			router.push(user ? ROLE_DEFAULT_ROUTE[user.role] : "/");
+			router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
 		} catch (err) {
 			const apiErr = err as ApiErrorResponse;
 			setServerError(apiErr.message || "Registration failed — please check your details and try again.");
 			setIsSubmitting(false);
 		}
 	}
-
+	
 	return (
 		<div className="min-h-screen bg-hero-radial">
 			<div className="mx-auto max-w-2xl px-6 py-10">
@@ -83,30 +83,64 @@ export default function RegisterPage() {
 								{errors.schoolName && <p className="text-xs text-destructive">{errors.schoolName.message}</p>}
 							</div>
 
-							<div className="grid grid-cols-2 gap-3">
-								<div className="space-y-2">
-									<Label>School category</Label>
-									<Select
-										value={values.schoolCategory}
-										onValueChange={(v) => setValue("schoolCategory", v as typeof values.schoolCategory, { shouldValidate: true })}
-									>
-										<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-										<SelectContent>
-											<SelectItem value="primary">Primary</SelectItem>
-											<SelectItem value="secondary">Secondary</SelectItem>
-											<SelectItem value="primary_secondary">Primary & Secondary</SelectItem>
-										</SelectContent>
-									</Select>
-									{errors.schoolCategory && <p className="text-xs text-destructive">{errors.schoolCategory.message}</p>}
+							<div className="grid gap-5 md:grid-cols-2">
+								{/* School Category */}
+								<div className="space-y-2.5">
+									<Label>School Category</Label>
+
+									<div className="flex overflow-hidden rounded-lg border border-input">
+										{[
+											{ value: "primary", label: "Primary" },
+											{ value: "secondary", label: "Secondary" },
+											{ value: "primary_secondary", label: "Both" },
+										].map((item) => (
+											<button
+												key={item.value}
+												type="button"
+												onClick={() =>
+													setValue(
+														"schoolCategory",
+														item.value as typeof values.schoolCategory,
+														{ shouldValidate: true },
+													)
+												}
+												className={cn(
+													"flex-1 border-r border-input px-3 py-2.5 text-sm font-medium transition-colors last:border-r-0",
+													values.schoolCategory === item.value
+														? "bg-primary text-primary-foreground"
+														: "bg-background hover:bg-muted",
+												)}
+											>
+												{item.label}
+											</button>
+										))}
+									</div>
+
+									{errors.schoolCategory && (
+										<p className="text-xs text-destructive">
+											{errors.schoolCategory.message}
+										</p>
+									)}
 								</div>
 
-								<div className="space-y-2">
+								{/* Ownership */}
+								<div className="space-y-2.5">
 									<Label>Ownership</Label>
+
 									<Select
-										value={values.schoolOwnership}
-										onValueChange={(v) => setValue("schoolOwnership", v as typeof values.schoolOwnership, { shouldValidate: true })}
+										value={values.schoolOwnership ?? ""}
+										onValueChange={(v) =>
+											setValue(
+												"schoolOwnership",
+												v as typeof values.schoolOwnership,
+												{ shouldValidate: true },
+											)
+										}
 									>
-										<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+										<SelectTrigger className="h-10">
+											<SelectValue placeholder="Choose ownership" />
+										</SelectTrigger>
+
 										<SelectContent>
 											<SelectItem value="private">Private</SelectItem>
 											<SelectItem value="public">Public</SelectItem>
@@ -114,7 +148,12 @@ export default function RegisterPage() {
 											<SelectItem value="international">International</SelectItem>
 										</SelectContent>
 									</Select>
-									{errors.schoolOwnership && <p className="text-xs text-destructive">{errors.schoolOwnership.message}</p>}
+
+									{errors.schoolOwnership && (
+										<p className="text-xs text-destructive">
+											{errors.schoolOwnership.message}
+										</p>
+									)}
 								</div>
 							</div>
 
@@ -129,7 +168,7 @@ export default function RegisterPage() {
 										}
 										className="rounded-r-none"
 									/>
-									<div className="grid h-9 place-items-center rounded-r-md border border-l-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+									<div className="grid h-10 place-items-center rounded-r-lg border border-l-0 border-input bg-muted px-4 text-sm text-muted-foreground">
 										.{hostname}
 									</div>
 								</div>

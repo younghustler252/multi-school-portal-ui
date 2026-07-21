@@ -5,23 +5,19 @@ import { UserResponseData, RegisterDto } from "@/features/auth/types/auth.types"
 
 interface AuthState {
 	user: UserResponseData | null;
-	accessToken: string | null;
 	isAuthenticated: boolean;
 	isLoading: boolean;
 
 	login: (email: string, password: string) => Promise<void>;
-	register: (data: RegisterDto) => Promise<void>;
+	register: (data: RegisterDto) => Promise<{ message: string }>;
 	logout: () => void;
-	refreshAccessToken: () => Promise<boolean>;
-	setSession: (user: UserResponseData, accessToken: string) => void;
-	fetchCurrentUser: () => Promise<void>;
+	fetchCurrentUser: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>()(
 	persist(
 		(set) => ({
 			user: null,
-			accessToken: null,
 			isAuthenticated: false,
 			isLoading: false,
 
@@ -32,42 +28,40 @@ export const useAuthStore = create<AuthState>()(
 					set({ isLoading: false });
 					throw res;
 				}
-				const { user, accessToken } = res.data;
-				set({ user, accessToken, isAuthenticated: true, isLoading: false });
+				// tokens are already set as httpOnly cookies by the backend — nothing to store
+				set({ user: res.data.user, isAuthenticated: true, isLoading: false });
 			},
 
 			register: async (data: RegisterDto) => {
 				set({ isLoading: true });
 				const res = await authApi.register(data);
+				set({ isLoading: false });
 				if (!res.success) {
-					set({ isLoading: false });
 					throw res;
 				}
-				const { user, accessToken } = res.data;
-				set({ user, accessToken, isAuthenticated: true, isLoading: false });
+				return res.data; // { message } — no session created
 			},
 
 			logout: () => {
 				authApi.logout().catch(() => {});
-				set({ user: null, accessToken: null, isAuthenticated: false });
+				set({ user: null, isAuthenticated: false });
 			},
 
-			refreshAccessToken: async () => {
-				const res = await authApi.refresh();
-				if (!res.success) return false;
-				set({ accessToken: res.data.accessToken });
-				return true;
-			},
-
-			setSession: (user: UserResponseData, accessToken: string) => {
-				set({ user, accessToken, isAuthenticated: true });
-			},
-
+			// Called on app load — cookies may still be valid from a previous visit.
+			// Hits /auth/me; if it succeeds, cookie was valid (401 triggers the
+			// interceptor's silent refresh automatically before failing for good).
 			fetchCurrentUser: async () => {
-				const res = await authApi.getCurrentUser();
-				if (res.success) {
-					set({ user: res.data, isAuthenticated: true });
+				try {
+					const res = await authApi.getCurrentUser();
+					if (res.success) {
+						set({ user: res.data, isAuthenticated: true });
+						return true;
+					}
+				} catch {
+					// no valid session
 				}
+				set({ user: null, isAuthenticated: false });
+				return false;
 			},
 		}),
 		{

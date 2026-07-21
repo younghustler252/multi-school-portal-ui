@@ -15,6 +15,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { loginSchema, LoginFormValues } from "@/features/auth/schemas/login.schema";
 import { ApiErrorResponse } from "@/types/api-response";
 import { ROLE_DEFAULT_ROUTE } from "@/types/roles";
+import { authApi } from "@/features/auth/services/auth.api";
 
 export default function LoginPage() {
 	const router = useRouter();
@@ -37,6 +38,15 @@ export default function LoginPage() {
 			router.push(user ? ROLE_DEFAULT_ROUTE[user.role] : "/");
 		} catch (err) {
 			const apiErr = err as ApiErrorResponse;
+
+			if (apiErr.message?.toLowerCase().includes("verify")) {
+				// Trigger a fresh OTP before sending them to enter one —
+				// their original registration code has likely expired by now.
+				authApi.resendOtp({ email: values.email }).catch(() => {});
+				router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+				return;
+			}
+
 			setServerError(apiErr.message || "Login failed — please try again.");
 		}
 	}

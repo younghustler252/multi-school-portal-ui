@@ -34,14 +34,23 @@ export interface LoginDto {
 export interface RefreshTokenDto {
 	refreshToken?: string; // optional — usually comes from httpOnly cookie
 }
+export interface AuthTokens {
+	accessToken: string;
+	refreshToken: string;
+}
 
 export interface LoginResponseData {
 	user: UserResponseData;
-	accessToken: string;
+	tokens: AuthTokens;
 }
-
+export interface RegisterResponseData {
+	message: string;
+}
 export interface RefreshResponseData {
 	accessToken: string;
+}
+export interface VerifyEmailResponseData {
+	message: string;
 }
 
 /*

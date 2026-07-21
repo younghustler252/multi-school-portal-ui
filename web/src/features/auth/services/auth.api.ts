@@ -3,7 +3,9 @@ import { ApiResponse } from "@/types/api-response";
 import {
 	LoginDto,
 	LoginResponseData,
+	RegisterResponseData,
 	RefreshResponseData,
+	VerifyEmailResponseData,
 	RegisterDto,
 	VerifyEmailDto,
 	ResendOtpDto,
@@ -22,7 +24,7 @@ export const authApi = {
 	login: (data: LoginDto): Promise<ApiResponse<LoginResponseData>> =>
 		API.post("/auth/login", data),
 
-	register: (data: RegisterDto): Promise<ApiResponse<LoginResponseData>> =>
+	register: (data: RegisterDto): Promise<ApiResponse<RegisterResponseData>> =>
 		API.post("/auth/register", data),
 
 	refresh: (): Promise<ApiResponse<RefreshResponseData>> =>
@@ -35,7 +37,7 @@ export const authApi = {
 	// EMAIL VERIFICATION
 	// ==================================
 
-	verifyEmail: (data: VerifyEmailDto): Promise<ApiResponse<UserResponseData>> =>
+	verifyEmail: (data: VerifyEmailDto): Promise<ApiResponse<VerifyEmailResponseData>> =>
 		API.post("/auth/verify-email", data),
 
 	resendOtp: (data: ResendOtpDto): Promise<ApiResponse<null>> =>
