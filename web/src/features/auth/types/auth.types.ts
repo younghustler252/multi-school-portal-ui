@@ -87,12 +87,6 @@ export interface ResetPasswordDto {
 	confirmPassword: string;
 }
 
-export interface ChangePasswordDto {
-	currentPassword: string;
-	newPassword: string;
-	confirmPassword: string;
-}
-
 /*
 |--------------------------------------------------------------------------
 | REGISTER (SCHOOL SIGNUP)

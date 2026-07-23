@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
@@ -28,13 +28,50 @@ export default function RegisterPage() {
 	const registerSchoolAdmin = useAuthStore((s) => s.register);
 	const [serverError, setServerError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isSubdomainEdited, setIsSubdomainEdited] = useState(false);
 
 	const { step, goNext, goBack, form } = useRegisterForm();
 	const { register, watch, setValue, formState: { errors } } = form;
 
 	const values = watch();
 	const hostname = new URL(COMPANY.website).hostname;
+	const schoolName = watch("schoolName");
 
+	const generateSubdomain = (name: string) => {
+		return name
+			.toLowerCase()
+			.trim()
+
+			// Remove common school words
+			.replace(
+				/\b(school|academy|college|nursery|primary|secondary|international|institute|high|grammar|college)\b/g,
+				"",
+			)
+
+			// Remove special characters
+			.replace(/[^a-z0-9\s-]/g, "")
+
+			// Convert spaces to hyphens
+			.replace(/\s+/g, "-")
+
+			// Remove duplicate hyphens
+			.replace(/-+/g, "-")
+
+			// Remove leading/trailing hyphens
+			.replace(/^-|-$/g, "");
+	};
+
+	useEffect(() => {
+		if (isSubdomainEdited) return;
+
+		setValue(
+			"subdomain",
+			generateSubdomain(schoolName ?? ""),
+			{
+				shouldValidate: true,
+			},
+		);
+	}, [schoolName, isSubdomainEdited, setValue]);
 	async function handleFinalSubmit() {
 		setServerError(null);
 		setIsSubmitting(true);
@@ -160,14 +197,22 @@ export default function RegisterPage() {
 							<div className="space-y-2">
 								<Label htmlFor="subdomain">Subdomain</Label>
 								<div className="flex">
-									<Input
-										id="subdomain"
-										{...register("subdomain")}
-										onChange={(e) =>
-											setValue("subdomain", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""), { shouldValidate: true })
-										}
-										className="rounded-r-none"
-									/>
+								<Input
+									id="subdomain"
+									{...register("subdomain")}
+									onChange={(e) => {
+										const value = e.target.value
+											.toLowerCase()
+											.replace(/[^a-z0-9-]/g, "");
+
+										setIsSubdomainEdited(value.length > 0);
+
+										setValue("subdomain", value, {
+											shouldValidate: true,
+										});
+									}}
+									className="rounded-r-none"
+								/>
 									<div className="grid h-10 place-items-center rounded-r-lg border border-l-0 border-input bg-muted px-4 text-sm text-muted-foreground">
 										.{hostname}
 									</div>

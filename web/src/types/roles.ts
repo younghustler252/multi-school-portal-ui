@@ -19,13 +19,12 @@ export const ROLES: Record<Role, Role> = {
     guardian: "guardian",
 };
 
-// Base path each role lands on after login — matches app/(dashboard)/[role] folders
 export const ROLE_DEFAULT_ROUTE: Record<Role, string> = {
-    super_admin: "/schools",
-    school_admin: "/school-admin/students",
-    principal: "/principal/overview",
-    teacher: "/teacher/my-classes",
-    bursar: "/bursar/fees",
-    student: "/student/grades",
-    guardian: "/guardian/children",
+	super_admin: "/schools",
+	school_admin: "/school-admin/dashboard",
+	principal: "/principal/overview",
+	teacher: "/teacher/my-classes",
+	bursar: "/bursar/fees",
+	student: "/student/grades",
+	guardian: "/guardian/children",
 };

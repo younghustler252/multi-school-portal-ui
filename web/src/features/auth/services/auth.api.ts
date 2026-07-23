@@ -11,8 +11,6 @@ import {
 	ResendOtpDto,
 	ForgotPasswordDto,
 	ResetPasswordDto,
-	ChangePasswordDto,
-	UserResponseData,
 } from "../types/auth.types";
 
 export const authApi = {
@@ -52,15 +50,5 @@ export const authApi = {
 
 	resetPassword: (data: ResetPasswordDto): Promise<ApiResponse<null>> =>
 		API.post("/auth/reset-password", data),
-
-	changePassword: (data: ChangePasswordDto): Promise<ApiResponse<null>> =>
-		API.post("/auth/change-password", data),
-
-	// ==================================
-	// CURRENT USER
-	// ==================================
-
-	getCurrentUser: (): Promise<ApiResponse<UserResponseData>> =>
-		API.get("/auth/me"),
 
 };
